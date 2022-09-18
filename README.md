@@ -23,6 +23,6 @@ blocks and records, respectively.We implement these features using random choice
 
 - Download the executable jar `ExpBlock.jar`
 
-- Download and place the data file [ncvoters_A.txt](https://www.dropbox.com/s/5a48pnqbdqcd6w4/ncvoters_A.txt?dl=0) in the same directory with `ExpBlock.jar`
+- Download and place the data file [ncvoters_A.txt](https://www.dropbox.com/s/5a48pnqbdqcd6w4/ncvoters_A.txt?dl=0) in the same directory as `ExpBlock.jar`
 
 - In the command line, run `ExpBlock.jar` using `java -jar ExpBlock.jar`

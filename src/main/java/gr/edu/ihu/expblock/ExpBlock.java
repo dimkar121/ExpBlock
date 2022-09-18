@@ -90,7 +90,7 @@ public class ExpBlock {
         int recNo = 0;
 
         try {
-            CSVReader reader = new CSVReader(new FileReader("c:\\data\\ncvoters_A.txt"));
+            CSVReader reader = new CSVReader(new FileReader("ncvoters_A.txt"));
             String[] lineInArray;
             while ((lineInArray = reader.readNext()) != null) {
                 if (lineInArray.length == 5) {

@@ -2,7 +2,9 @@
 # ExpBlock
 This is the artifact for the submission 
 
-"A Randomized Blocking Structure for Streaming Record Linkage", co-authored by D. Karapiperis (IHU), C. Tjortjis (IHU), and V. Verykios (HOU)
+"A Randomized Blocking Structure for Streaming Record Linkage", 
+
+co-authored by D. Karapiperis (IHU), C. Tjortjis (IHU), and V. Verykios (HOU)
 
 
 ## Abstract

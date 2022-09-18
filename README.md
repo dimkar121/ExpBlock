@@ -5,7 +5,7 @@ This is the artifact for the submission
 "A Randomized Blocking Structure for Streaming Record Linkage", co-authored by D. Karapiperis (IHU), C. Tjortjis (IHU), and V. Verykios (HOU)
 
 
-##Abstract
+## Abstract
 
 A huge amount of data, in terms of streams, is collected nowadays via a variety of sources, such as sensors, mobile devices, or even raw
 log files. The unprecedented rate at which these data are generated and collected calls for novel record linkage methods to identify
@@ -19,7 +19,7 @@ Specifically, the probability of inactive blocks and older records to remain in 
 blocks and records, respectively.We implement these features using random choices instead of utilizing cumbersome data structures in order to favour simplicity of implementation and efficiency. 
 
 
-##Running the artifact
+## Running the artifact
 
 - Download the executable jar `ExpBlock.jar`
 

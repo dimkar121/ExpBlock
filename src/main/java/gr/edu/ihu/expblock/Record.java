@@ -14,8 +14,22 @@ public class Record {
     public String id;
     public String name;
     public String surname;
-    public String region;
+    public String town;
+    public String poBox;    
+    public String origin;
     public int evictions = 0;
-    public int survivals = 0;    
+    public int survivals = 0;  
+    public String bKey = "";
+    
+    public String getBlockingKey(){
+        return surname+"_"+"_"+poBox;
+    }
+    
+    public String getIdNo(){
+        if (this.id.indexOf("_") > 0)
+             return id.substring(1,this.id.indexOf("_"));
+        return id.substring(1);
+    }
+    
     
 }

@@ -23,7 +23,7 @@ We showcase, through the experimental evaluation, that ExplBlock scales efficien
 ## Dependencies
 - JRE 8
 - Maven
-All component dependencies are managed by Maven.
+- All component dependencies are managed by Maven.
 
 ## Running the artifact
 

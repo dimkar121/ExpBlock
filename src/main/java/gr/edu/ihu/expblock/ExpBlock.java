@@ -31,7 +31,6 @@ public class ExpBlock {
     public int currentRound = 1;
     public int matchingPairsNo = 0;
     public int trulyMatchingPairsNo = 1000000;
-    public int comparisonsNo = 0;
     public static MinHash minHash = new MinHash();
     public static FileWriter writer;
 
@@ -50,11 +49,6 @@ public class ExpBlock {
             Random r = new Random();
 
             Object[] values = map.values().toArray();
-            //for (int vv = 0; vv < values.length; vv++) {
-            //  Block block = (Block) values[vv];
-            //double freq = block.recNo * 1.0 / globalRecNo;
-            //System.out.println(block.key+" "+block.recNo+" freq="+freq);
-            //}
 
             int avg = this.globalRecNo / b;
             if (avg == 0) {
@@ -69,7 +63,6 @@ public class ExpBlock {
                 block.setDegree(avg, currentRound);
                 if (block.degree <= 0) {
                     map.remove(key1);
-                    this.comparisonsNo = this.comparisonsNo + block.comparisonsNo;
                     //System.out.println("REMOVED Block " + key1 + " degree=" + block.degree + " recs=" + block.recNo + " decay=" + block.decay + " lastroundused=" + block.lastRoundUsed);
                     v++;
                 } else {
@@ -122,14 +115,14 @@ public class ExpBlock {
     public static void main(String[] args) {
         // TODO code application logic here
         ExpBlock e = new ExpBlock();
-        System.out.println("b=" + e.b + " w=" + e.w);
+        System.out.println("Running ExpBlock using b=" + e.b + " w=" + e.w);
         int recNoA = 0;
         int recNoB = 0;
         long startTime = System.currentTimeMillis();
         long startTimeCycle = System.currentTimeMillis();
         try {
-            CSVReader readerA = new CSVReader(new FileReader("c:\\data\\test_voters_A.txt"));
-            CSVReader readerB = new CSVReader(new FileReader("c:\\data\\test_voters_B.txt"));
+            CSVReader readerA = new CSVReader(new FileReader("test_voters_A.txt"));
+            CSVReader readerB = new CSVReader(new FileReader("test_voters_B.txt"));
 
             String[] lineInArray1;
             String[] lineInArray2;
@@ -175,7 +168,6 @@ public class ExpBlock {
             System.out.println(" ==================== processed " + (recNoA + recNoB) + " records in total.");
             System.out.println(" ==================== processed " + (recNoA) + " records from A.");
             System.out.println(" ==================== processed " + (recNoB) + " records from B.");
-            System.out.println(" ==================== processed " + (e.comparisonsNo) + " comparisons in total.");
             System.out.println(" ==================== identified " + e.matchingPairsNo + " in total. Recall = " + (e.matchingPairsNo * 1.0 / e.trulyMatchingPairsNo));
         } catch (Exception ex) {
             ex.printStackTrace();

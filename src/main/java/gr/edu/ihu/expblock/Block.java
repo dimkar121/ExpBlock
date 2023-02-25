@@ -5,6 +5,8 @@
  */
 package gr.edu.ihu.expblock;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -57,7 +59,16 @@ public class Block {
         return distance[str1.length()][str2.length()];
     }
 
-    public int put(Record rec, int w, int round) {
+    public static void writeToFile(String text) {
+        try {
+            FileWriter myWriter = new FileWriter("filename.txt");
+            myWriter.write(text);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public int put(Record rec, int w, int round, FileWriter writer) {
         //Do the matching
         int matchingPairsNo = 0;
         for (int i = 0; i < arr.size(); i++) {
@@ -65,12 +76,17 @@ public class Block {
             //Use any matching rule 
             if (!rec1.origin.equals(rec.origin)) { //Compare only records which orginate from different data sources
                 this.comparisonsNo++;
-                if ((editDistance(rec1.surname, rec.surname) < 3) && (editDistance(rec1.name, rec.name) < 3)) {
+                if ((editDistance(rec1.surname, rec.surname) <= 4) && (editDistance(rec1.name, rec.name) <= 4)) {
                     //Report a match
                     //System.out.println("A matching pair identified.");
                     if (rec.getIdNo().equals(rec1.getIdNo())) {
                         //System.out.println("A truly matching pair identified.");
-                        System.out.println(rec1.id+" "+rec1.surname + " "+rec1.name+" "+rec1.town+ " "+rec1.poBox + " matched with " +rec.id+" "+ rec.surname+ " "+rec.name+" "+rec.town+ " "+rec.poBox) ;                        
+                        String s = rec1.id + " " + rec1.surname + " " + rec1.name + " " + rec1.town + " " + rec1.poBox + " matched with " + rec.id + " " + rec.surname + " " + rec.name + " " + rec.town + " " + rec.poBox;
+                        try {
+                           //writer.write(s+"\r\n");
+                        }catch (Exception ex){
+                            ex.printStackTrace();
+                        }   
                         matchingPairsNo++;
                     }
                 }

@@ -34,5 +34,9 @@ public class Record {
         }
         return id.substring(1);
     }
+    
+    public String getId() {
+        return id;
+    }
 
 }

@@ -31,9 +31,9 @@ public class ExpBlock {
     public int currentRound = 1;
     public int matchingPairsNo = 0;
     public int trulyMatchingPairsNo = 1000000;
-    public static MinHash minHash = new MinHash();
+    public MinHash minHash = new MinHash();
     public static FileWriter writer;
-
+    
     public ExpBlock() {
         try {
             writer = new FileWriter("results.txt");
@@ -43,7 +43,7 @@ public class ExpBlock {
 
     }
 
-    public void put(String key, Record rec) {
+    public void put(Record rec) {
         //System.out.println("occupied="+this.occupied);
         if (this.occupied == b) {
             Random r = new Random();
@@ -63,23 +63,19 @@ public class ExpBlock {
                 block.setDegree(avg, currentRound);
                 if (block.degree <= 0) {
                     map.remove(key1);
-                    //System.out.println("REMOVED Block " + key1 + " degree=" + block.degree + " recs=" + block.recNo + " decay=" + block.decay + " lastroundused=" + block.lastRoundUsed);
                     v++;
                 } else {
                     block.recNo = block.recNo - avg;
-                    //System.out.println("NOT REMOVED Block " + key1 + " degree=" + block.degree + " recs=" + block.recNo + " activity=" + block.activity + " lastroundused=" + block.lastRoundUsed);
                 }
 
             }
 
-            this.occupied = this.occupied - ((int) Math.floor((xi * b)));
-            /*if (currentRound % 40 == 0) {
-                this.globalRecNo = 0;
-            }*/
+            this.occupied = this.occupied - ((int) Math.floor((xi * b)));           
 
             currentRound++;
         }
         this.globalRecNo++;
+        String key = rec.getBlockingKey(minHash);
         if (map.containsKey(key)) {
             Block block = map.get(key);
             int mp = block.put(rec, w, currentRound, writer);
@@ -135,7 +131,7 @@ public class ExpBlock {
                         recNoA++;
                         //System.out.println("Working on "+recNoA+" record from A.");
                         Record rec1 = prepare(lineInArray1);
-                         e.put(rec1.getBlockingKey(minHash), rec1);
+                         e.put(rec1);
                     }
                 }
                 lineInArray2 = readerB.readNext();                
@@ -146,8 +142,7 @@ public class ExpBlock {
                         recNoB++;
                         //System.out.println("Working on "+recNoB+" record from B.");                                                        
                         Record rec2 = prepare(lineInArray2);
-                        e.put(rec2.getBlockingKey(minHash), rec2);
-                        //e.put(rec2.getBlockingKey(minHash), rec2);
+                        e.put(rec2);
                     }
                 }
 

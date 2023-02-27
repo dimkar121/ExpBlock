@@ -21,9 +21,9 @@ Specifically, the probability of inactive blocks and older records to remain in 
 We showcase, through the experimental evaluation, that ExplBlock scales efficiently to data streams by providing accurate results in a timely fashion.
 
 ## Dependencies
-- JRE 8
-- Maven
-- All component dependencies are managed by Maven.
+- Java Runtime Environment 8 (and onwards)
+- Maven 3
+- All component dependencies are managed by Maven
 
 ## Running the artifact
 

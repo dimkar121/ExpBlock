@@ -9,9 +9,10 @@ import com.opencsv.CSVReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.SplittableRandom;
+import java.util.stream.IntStream;
 
 /**
  *
@@ -22,18 +23,30 @@ public class ExpBlock {
     /**
      * @param args the command line arguments
      */
-    public HashMap<String, Block> map = new HashMap<String, Block>();
+    //public HashMap<String, Block> map = new HashMap<String, Block>();
     public int w = 1000;
-    public int b = 1000;
+    public int b = 2000;
     public int globalRecNo = 0;
     public int occupied = 0;
-    public double xi = .1;
+    public double xi = .08;
     public int currentRound = 1;
     public int matchingPairsNo = 0;
     public int trulyMatchingPairsNo = 1000000;
     public MinHash minHash = new MinHash();
     public static FileWriter writer;
+    public static int missedChoicesCount = 0;
+    public static long evictionTimeSum = 0;
+    public static long blockingTimeSum = 0;
     
+    public static int countEvictions = 0;
+    public static int countLoops = 0;    
+    public static int noRandoms = 1000;
+    public static int nextRandom = 0;
+    public Block[] arr = new Block[this.b];
+    public IntStream rS = new SplittableRandom().ints(this.noRandoms, 0, this.b);
+    public int[] r = rS.toArray();
+    SplittableRandom rnd = new SplittableRandom();
+
     public ExpBlock() {
         try {
             writer = new FileWriter("results.txt");
@@ -46,9 +59,10 @@ public class ExpBlock {
     public void put(Record rec) {
         //System.out.println("occupied="+this.occupied);
         if (this.occupied == b) {
-            Random r = new Random();
-
-            Object[] values = map.values().toArray();
+           
+                        
+            this.countEvictions++;
+            // Object[] values = map.values().toArray();
 
             int avg = this.globalRecNo / b;
             if (avg == 0) {
@@ -57,26 +71,107 @@ public class ExpBlock {
 
             //System.out.println("Initiate the eviction process of blocks. current round=" + currentRound + "  globalRecNo=" + globalRecNo + " avg=" + avg);
             int v = 0;
-            while (v < (int) Math.floor((xi * b))) {
-                Block block = (Block) values[r.nextInt(values.length)];
-                String key1 = block.key;
+            long startTime = System.nanoTime();
+
+        
+            
+        
+        /*for (int i=0; i<b;i++){
+            if (arr[i] != null)
+               arr[i].setDegree(avg, currentRound);           
+        }    
+        Arrays.sort(arr, Comparator.comparing(Block::getDegree));
+        int i=0;
+        while (v < (int) Math.floor((xi * b))){ 
+           if (arr[i].degree <= 0) {
+                 arr[i] = null;
+                 v++;
+           }         
+           i++;
+        }*/
+       
+        int i=0;              
+        while (v < (int) Math.floor((xi * b))){ 
+            this.countLoops++;
+            Block block = arr[i];
+            if (block == null)
+                    continue;                
+            block.setDegree(avg, currentRound);
+            if (block.degree <= 0) {
+                 arr[i] = null;
+                 v++;
+            } else {
+                 block.recNo = block.recNo - avg;
+                 this.missedChoicesCount++;
+            }
+            i++;
+          }
+          
+          /*while (v < (int) Math.floor((xi * b))) {
+                this.countLoops++;
+                //int i = rnd.nextInt(this.b);               
+                int i = r[this.nextRandom];
+                this.nextRandom++;
+                if (this.nextRandom == this.noRandoms)
+                    this.nextRandom = 0;
+                Block block =  arr[i];
+                if (block == null)
+                    continue;                
                 block.setDegree(avg, currentRound);
                 if (block.degree <= 0) {
-                    map.remove(key1);
+                    arr[i] = null;
                     v++;
                 } else {
                     block.recNo = block.recNo - avg;
+                    this.missedChoicesCount++;
                 }
 
-            }
+            }*/
 
-            this.occupied = this.occupied - ((int) Math.floor((xi * b)));           
+            long stopTime = System.nanoTime();
+            long elapsedTime = stopTime - startTime;
+            this.evictionTimeSum = this.evictionTimeSum + elapsedTime;
+            this.occupied = this.occupied - ((int) Math.floor((xi * b)));
 
             currentRound++;
         }
         this.globalRecNo++;
         String key = rec.getBlockingKey(minHash);
-        if (map.containsKey(key)) {
+
+        long startTime = System.nanoTime();
+        boolean blockExists = false;
+        int emptyPos = -1;
+        for (int i = 0; i < arr.length; i++) {
+            Block block = arr[i];
+            if (block != null){
+              if (block.key.equals(key)) {
+                int mp = block.put(rec, w, currentRound, writer);
+                this.matchingPairsNo = this.matchingPairsNo + mp;
+                blockExists = true;
+                break;
+              } 
+            } else  
+                emptyPos = i;
+        }
+        if (!blockExists) {
+            Block newBlock = new Block(key);
+            this.occupied++;
+            int mp = newBlock.put(rec, w, currentRound, writer);
+            if (emptyPos != -1)
+                arr[emptyPos] = newBlock;
+            else
+                for (int i=0; i<this.b;i++)
+                    if (arr[i] == null){
+                        arr[i] = newBlock;
+                        break;
+                    }    
+            this.matchingPairsNo = this.matchingPairsNo + mp;
+        }
+        long stopTime = System.nanoTime();
+        long elapsedTime = stopTime - startTime;
+        this.blockingTimeSum = this.blockingTimeSum + elapsedTime;
+             
+        /*if (map.containsKey(key)) {
             Block block = map.get(key);
             int mp = block.put(rec, w, currentRound, writer);
             this.matchingPairsNo = this.matchingPairsNo + mp;
@@ -86,8 +181,7 @@ public class ExpBlock {
             int mp = block.put(rec, w, currentRound, writer);
             map.put(key, block);
             this.matchingPairsNo = this.matchingPairsNo + mp;
-        }
-
+        }*/
     }
 
     public static Record prepare(String[] lineInArray) {
@@ -117,8 +211,8 @@ public class ExpBlock {
         long startTime = System.currentTimeMillis();
         long startTimeCycle = System.currentTimeMillis();
         try {
-            CSVReader readerA = new CSVReader(new FileReader("test_voters_A.txt"));
-            CSVReader readerB = new CSVReader(new FileReader("test_voters_B.txt"));
+            CSVReader readerA = new CSVReader(new FileReader("c:\\data\\test_voters_A.txt"));
+            CSVReader readerB = new CSVReader(new FileReader("c:\\data\\test_voters_B.txt"));
 
             String[] lineInArray1;
             String[] lineInArray2;
@@ -131,10 +225,10 @@ public class ExpBlock {
                         recNoA++;
                         //System.out.println("Working on "+recNoA+" record from A.");
                         Record rec1 = prepare(lineInArray1);
-                         e.put(rec1);
+                        e.put(rec1);
                     }
                 }
-                lineInArray2 = readerB.readNext();                
+                lineInArray2 = readerB.readNext();
                 if (lineInArray2 != null) {
                     //String[] lineInArray2 = readerB.readNext();
                     if (lineInArray2.length == 6) {
@@ -150,11 +244,21 @@ public class ExpBlock {
                     long stopTimeCycle = System.currentTimeMillis();
                     long elapsedTime = stopTimeCycle - startTimeCycle;
                     System.out.println("====== processed " + (recNoA + recNoB) + " records in " + (elapsedTime / 1000) + " seconds.");
-                    System.out.println("====== identified " + e.matchingPairsNo+" matching pairs.");
+                    System.out.println("====== identified " + e.matchingPairsNo + " matching pairs.");
+                    double avgEvictionTime = e.evictionTimeSum* 1.0 / e.countEvictions;
+                    double avgBlockingTime = e.blockingTimeSum* 1.0 / e.countEvictions;                    
+                    e.evictionTimeSum = 0;
+                    double avgEvictionCount = e.missedChoicesCount * 1.0 / e.countEvictions;
+                    e.missedChoicesCount = 0;
+                    double avgCountLoops = e.countLoops * 1.0 / e.countEvictions;
+                    e.countLoops  = 0;
+                    e.countEvictions = 0;                    
+                    System.out.println(" ==================== avg Blocking Time " + avgBlockingTime + " avg Eviction Time="+ avgEvictionTime  +" avg Eviction Count=" + avgEvictionCount+" countLoops="+avgCountLoops);                    
                     startTimeCycle = System.currentTimeMillis();
                 }
-                if ((lineInArray1== null) && (lineInArray2==null))
+                if ((lineInArray1 == null) && (lineInArray2 == null)) {
                     break;
+                }
             }
             long stopTime = System.currentTimeMillis();
             long elapsedTime = stopTime - startTime;

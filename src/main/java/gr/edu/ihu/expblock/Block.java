@@ -28,6 +28,10 @@ public class Block {
     public Block(String key) {
         this.key = key;
     }
+    
+    public int getDegree(){
+        return degree;
+    }
 
     public Record get(int i) {
         return arr.get(i);
@@ -60,14 +64,14 @@ public class Block {
         return distance[str1.length()][str2.length()];
     }
 
-    public static void writeToFile(String text) {
+   /* public static void writeToFile(String text) {
         try {
             FileWriter myWriter = new FileWriter("filename.txt");
             myWriter.write(text);
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     public int put(Record rec, int w, int round, FileWriter writer) {
         //Do the matching
@@ -132,5 +136,8 @@ public class Block {
     public void set(ArrayList<Record> arr) {
         this.arr = arr;
     }
+    
+    
+    
 
 }

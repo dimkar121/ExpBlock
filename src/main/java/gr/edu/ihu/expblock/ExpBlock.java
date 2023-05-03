@@ -24,7 +24,10 @@ public class ExpBlock {
      * @param args the command line arguments
      */
     //public HashMap<String, Block> map = new HashMap<String, Block>();
-    public int w = 1000;
+    public double epsilon = 0.1;
+    public double delta = 0.1;
+    public double q = 2.0/3;
+    public int w = 0;
     public int b = 2000;
     public int globalRecNo = 0;
     public int occupied = 0;
@@ -49,6 +52,7 @@ public class ExpBlock {
 
     public ExpBlock() {
         try {
+            this.w = (int) Math.ceil(3*Math.log(2/this.delta)/(this.q*(this.epsilon*this.epsilon)));    
             writer = new FileWriter("results.txt");
         } catch (IOException e) {
             e.printStackTrace();

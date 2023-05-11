@@ -24,9 +24,11 @@ public class Block {
     int degree = 0;
     double activity = 0;
     int comparisonsNo = 0;
-
-    public Block(String key) {
+    double q = 0.0;
+    
+    public Block(String key, double q) {
         this.key = key;
+        this.q = q;
     }
     
     public int getDegree(){
@@ -76,6 +78,8 @@ public class Block {
     public int put(Record rec, int w, int round, FileWriter writer) {
         //Do the matching
         int matchingPairsNo = 0;
+        Random r = new Random();
+            
 
         for (int i = 0; i < arr.size(); i++) {
             Record rec1 = arr.get(i);
@@ -89,11 +93,11 @@ public class Block {
                     if (rec.getIdNo().equals(rec1.getIdNo())) {                       
                         //System.out.println("A truly matching pair identified.");
                         String s = rec1.id + " " + rec1.surname + " " + rec1.name + " " + rec1.town + " " + rec1.poBox + " matched with " + rec.id + " " + rec.surname + " " + rec.name + " " + rec.town + " " + rec.poBox;
-                        try {
+                        /*try {
                             writer.write(s + "\r\n");
                         } catch (Exception ex) {
                             ex.printStackTrace();
-                        }
+                        }*/
                         matchingPairsNo++;
                     }
                 }
@@ -103,11 +107,10 @@ public class Block {
         if (arr.size() == w) {
             ArrayList<Record> newArr = new ArrayList<Record>();
             int evicted = 0;
-            Random r = new Random();
             for (int i = 0; i < arr.size(); i++) {
-                int chance = r.nextInt(2);
+                double chance = r.nextDouble();
                 Record rec1 = arr.get(i);
-                if (chance == 1) {
+                if (chance < (1-this.q)) {
                     rec1.survivals++;
                     newArr.add(rec1);
                 } else {

@@ -9,8 +9,6 @@ import com.opencsv.CSVReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.SplittableRandom;
 import java.util.stream.IntStream;
 
@@ -24,11 +22,11 @@ public class ExpBlock {
      * @param args the command line arguments
      */
     //public HashMap<String, Block> map = new HashMap<String, Block>();
-    public double epsilon = 0.1;
+    public double epsilon;
     public double delta = 0.1;
-    public double q = 2.0/3;
-    public int w = 0;
-    public int b = 2000;
+    public double q;
+    public int w;
+    public int b;
     public int globalRecNo = 0;
     public int occupied = 0;
     public double xi = .08;
@@ -43,15 +41,23 @@ public class ExpBlock {
     
     public static int countEvictions = 0;
     public static int countLoops = 0;    
-    public static int noRandoms = 1000;
+    
     public static int nextRandom = 0;
-    public Block[] arr = new Block[this.b];
-    public IntStream rS = new SplittableRandom().ints(this.noRandoms, 0, this.b);
-    public int[] r = rS.toArray();
+    public static int noRandoms = 0;        
+    public Block[] arr;
+    public IntStream rS;
+    public int[] r;
     SplittableRandom rnd = new SplittableRandom();
-
-    public ExpBlock() {
+    
+    public ExpBlock(double epsilon, double q, int b) {
         try {
+            this.epsilon = epsilon;
+            this.b = b;
+            this.q = q;
+            this.arr = new Block[this.b];
+            this.noRandoms = 4*this.b;
+            this.rS = new SplittableRandom().ints(this.noRandoms, 0, this.b);
+            this.r = rS.toArray();
             this.w = (int) Math.ceil(3*Math.log(2/this.delta)/(this.q*(this.epsilon*this.epsilon)));    
             writer = new FileWriter("results.txt");
         } catch (IOException e) {
@@ -80,7 +86,7 @@ public class ExpBlock {
         
             
         
-        /*for (int i=0; i<b;i++){
+       /* for (int i=0; i<b;i++){
             if (arr[i] != null)
                arr[i].setDegree(avg, currentRound);           
         }    
@@ -94,7 +100,7 @@ public class ExpBlock {
            i++;
         }*/
        
-        int i=0;              
+       /* int i=0;              
         while (v < (int) Math.floor((xi * b))){ 
             this.countLoops++;
             Block block = arr[i];
@@ -109,9 +115,9 @@ public class ExpBlock {
                  this.missedChoicesCount++;
             }
             i++;
-          }
+          }*/
           
-          /*while (v < (int) Math.floor((xi * b))) {
+          while (v < (int) Math.floor((xi * b))) {
                 this.countLoops++;
                 //int i = rnd.nextInt(this.b);               
                 int i = r[this.nextRandom];
@@ -130,7 +136,7 @@ public class ExpBlock {
                     this.missedChoicesCount++;
                 }
 
-            }*/
+            }
 
             long stopTime = System.nanoTime();
             long elapsedTime = stopTime - startTime;
@@ -158,7 +164,7 @@ public class ExpBlock {
                 emptyPos = i;
         }
         if (!blockExists) {
-            Block newBlock = new Block(key);
+            Block newBlock = new Block(key, this.q);
             this.occupied++;
             int mp = newBlock.put(rec, w, currentRound, writer);
             if (emptyPos != -1)
@@ -208,7 +214,7 @@ public class ExpBlock {
 
     public static void main(String[] args) {
         // TODO code application logic here
-        ExpBlock e = new ExpBlock();
+        ExpBlock e = new ExpBlock(0.1, 2.0/3, 1000);
         System.out.println("Running ExpBlock using b=" + e.b + " w=" + e.w);
         int recNoA = 0;
         int recNoB = 0;

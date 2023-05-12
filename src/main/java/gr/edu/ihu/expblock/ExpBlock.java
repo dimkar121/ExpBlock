@@ -9,8 +9,10 @@ import com.opencsv.CSVReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.SplittableRandom;
 import java.util.stream.IntStream;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  *
@@ -21,7 +23,6 @@ public class ExpBlock {
     /**
      * @param args the command line arguments
      */
-    //public HashMap<String, Block> map = new HashMap<String, Block>();
     public double epsilon;
     public double delta = 0.1;
     public double q;
@@ -35,30 +36,25 @@ public class ExpBlock {
     public int trulyMatchingPairsNo = 1000000;
     public MinHash minHash = new MinHash();
     public static FileWriter writer;
-    public static int missedChoicesCount = 0;
-    public static long evictionTimeSum = 0;
-    public static long blockingTimeSum = 0;
-    
-    public static int countEvictions = 0;
-    public static int countLoops = 0;    
-    
-    public static int nextRandom = 0;
-    public static int noRandoms = 0;        
     public Block[] arr;
-    public IntStream rS;
-    public int[] r;
-    SplittableRandom rnd = new SplittableRandom();
-    
+    IntStream rS;
+    int[] r;
+    int noRandoms = 5000;
+
     public ExpBlock(double epsilon, double q, int b) {
         try {
             this.epsilon = epsilon;
             this.b = b;
             this.q = q;
             this.arr = new Block[this.b];
-            this.noRandoms = 4*this.b;
-            this.rS = new SplittableRandom().ints(this.noRandoms, 0, this.b);
-            this.r = rS.toArray();
-            this.w = (int) Math.ceil(3*Math.log(2/this.delta)/(this.q*(this.epsilon*this.epsilon)));    
+
+            for (int i = 0; i < 10; i++) {
+                IntStream rS = new SplittableRandom().ints(this.noRandoms / 10, 0, this.b);
+                int[] r = rS.toArray();
+                Arrays.sort(r);
+                this.r = ArrayUtils.addAll(this.r, r);
+            }
+            this.w = (int) Math.ceil(3 * Math.log(2 / this.delta) / (this.q * (this.epsilon * this.epsilon)));
             writer = new FileWriter("results.txt");
         } catch (IOException e) {
             e.printStackTrace();
@@ -69,78 +65,42 @@ public class ExpBlock {
     public void put(Record rec) {
         //System.out.println("occupied="+this.occupied);
         if (this.occupied == b) {
-           
-                        
-            this.countEvictions++;
-            // Object[] values = map.values().toArray();
-
             int avg = this.globalRecNo / b;
             if (avg == 0) {
                 avg = 1;
             }
 
-            //System.out.println("Initiate the eviction process of blocks. current round=" + currentRound + "  globalRecNo=" + globalRecNo + " avg=" + avg);
             int v = 0;
             long startTime = System.nanoTime();
 
-        
-            
-        
-       /* for (int i=0; i<b;i++){
-            if (arr[i] != null)
-               arr[i].setDegree(avg, currentRound);           
-        }    
-        Arrays.sort(arr, Comparator.comparing(Block::getDegree));
-        int i=0;
-        while (v < (int) Math.floor((xi * b))){ 
-           if (arr[i].degree <= 0) {
-                 arr[i] = null;
-                 v++;
-           }         
-           i++;
-        }*/
-       
-       /* int i=0;              
-        while (v < (int) Math.floor((xi * b))){ 
-            this.countLoops++;
-            Block block = arr[i];
-            if (block == null)
-                    continue;                
-            block.setDegree(avg, currentRound);
-            if (block.degree <= 0) {
-                 arr[i] = null;
-                 v++;
-            } else {
-                 block.recNo = block.recNo - avg;
-                 this.missedChoicesCount++;
-            }
-            i++;
-          }*/
-          
-          while (v < (int) Math.floor((xi * b))) {
-                this.countLoops++;
-                //int i = rnd.nextInt(this.b);               
-                int i = r[this.nextRandom];
-                this.nextRandom++;
-                if (this.nextRandom == this.noRandoms)
-                    this.nextRandom = 0;
-                Block block =  arr[i];
-                if (block == null)
-                    continue;                
+            int j = 0;
+            int i = r[j];
+            while (v < (int) Math.floor((xi * b))) {
+                Block block = arr[i];
+                if (block == null) {
+                    j++;
+                    if (j == this.noRandoms) {
+                        j = 0;
+                    }
+                    i = r[j];
+                    continue;
+                }
                 block.setDegree(avg, currentRound);
                 if (block.degree <= 0) {
                     arr[i] = null;
                     v++;
                 } else {
                     block.recNo = block.recNo - avg;
-                    this.missedChoicesCount++;
                 }
-
+                j++;
+                if (j == this.noRandoms) {
+                    j = 0;
+                }
+                i = r[j];
             }
 
             long stopTime = System.nanoTime();
             long elapsedTime = stopTime - startTime;
-            this.evictionTimeSum = this.evictionTimeSum + elapsedTime;
             this.occupied = this.occupied - ((int) Math.floor((xi * b)));
 
             currentRound++;
@@ -153,45 +113,35 @@ public class ExpBlock {
         int emptyPos = -1;
         for (int i = 0; i < arr.length; i++) {
             Block block = arr[i];
-            if (block != null){
-              if (block.key.equals(key)) {
-                int mp = block.put(rec, w, currentRound, writer);
-                this.matchingPairsNo = this.matchingPairsNo + mp;
-                blockExists = true;
-                break;
-              } 
-            } else  
+            if (block != null) {
+                if (block.key.equals(key)) {
+                    int mp = block.put(rec, w, currentRound, writer);
+                    this.matchingPairsNo = this.matchingPairsNo + mp;
+                    blockExists = true;
+                    break;
+                }
+            } else {
                 emptyPos = i;
+            }
         }
         if (!blockExists) {
             Block newBlock = new Block(key, this.q);
             this.occupied++;
             int mp = newBlock.put(rec, w, currentRound, writer);
-            if (emptyPos != -1)
+            if (emptyPos != -1) {
                 arr[emptyPos] = newBlock;
-            else
-                for (int i=0; i<this.b;i++)
-                    if (arr[i] == null){
+            } else {
+                for (int i = 0; i < this.b; i++) {
+                    if (arr[i] == null) {
                         arr[i] = newBlock;
                         break;
-                    }    
+                    }
+                }
+            }
             this.matchingPairsNo = this.matchingPairsNo + mp;
         }
         long stopTime = System.nanoTime();
         long elapsedTime = stopTime - startTime;
-        this.blockingTimeSum = this.blockingTimeSum + elapsedTime;
-             
-        /*if (map.containsKey(key)) {
-            Block block = map.get(key);
-            int mp = block.put(rec, w, currentRound, writer);
-            this.matchingPairsNo = this.matchingPairsNo + mp;
-        } else {
-            Block block = new Block(key);
-            this.occupied++;
-            int mp = block.put(rec, w, currentRound, writer);
-            map.put(key, block);
-            this.matchingPairsNo = this.matchingPairsNo + mp;
-        }*/
     }
 
     public static Record prepare(String[] lineInArray) {
@@ -213,8 +163,7 @@ public class ExpBlock {
     }
 
     public static void main(String[] args) {
-        // TODO code application logic here
-        ExpBlock e = new ExpBlock(0.1, 2.0/3, 1000);
+        ExpBlock e = new ExpBlock(0.1, 2.0 / 3, 1000);
         System.out.println("Running ExpBlock using b=" + e.b + " w=" + e.w);
         int recNoA = 0;
         int recNoB = 0;
@@ -255,15 +204,6 @@ public class ExpBlock {
                     long elapsedTime = stopTimeCycle - startTimeCycle;
                     System.out.println("====== processed " + (recNoA + recNoB) + " records in " + (elapsedTime / 1000) + " seconds.");
                     System.out.println("====== identified " + e.matchingPairsNo + " matching pairs.");
-                    double avgEvictionTime = e.evictionTimeSum* 1.0 / e.countEvictions;
-                    double avgBlockingTime = e.blockingTimeSum* 1.0 / e.countEvictions;                    
-                    e.evictionTimeSum = 0;
-                    double avgEvictionCount = e.missedChoicesCount * 1.0 / e.countEvictions;
-                    e.missedChoicesCount = 0;
-                    double avgCountLoops = e.countLoops * 1.0 / e.countEvictions;
-                    e.countLoops  = 0;
-                    e.countEvictions = 0;                    
-                    System.out.println(" ==================== avg Blocking Time " + avgBlockingTime + " avg Eviction Time="+ avgEvictionTime  +" avg Eviction Count=" + avgEvictionCount+" countLoops="+avgCountLoops);                    
                     startTimeCycle = System.currentTimeMillis();
                 }
                 if ((lineInArray1 == null) && (lineInArray2 == null)) {

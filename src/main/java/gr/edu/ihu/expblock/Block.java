@@ -93,11 +93,11 @@ public class Block {
                     if (rec.getIdNo().equals(rec1.getIdNo())) {                       
                         //System.out.println("A truly matching pair identified.");
                         String s = rec1.id + " " + rec1.surname + " " + rec1.name + " " + rec1.town + " " + rec1.poBox + " matched with " + rec.id + " " + rec.surname + " " + rec.name + " " + rec.town + " " + rec.poBox;
-                        /*try {
+                        try {
                             writer.write(s + "\r\n");
                         } catch (Exception ex) {
                             ex.printStackTrace();
-                        }*/
+                        }
                         matchingPairsNo++;
                     }
                 }

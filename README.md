@@ -4,7 +4,8 @@ This is the artifact for the manuscript:
 
 "A Randomized Blocking Structure for Streaming Record Linkage", 
 
-co-authored by D. Karapiperis (IHU), C. Tjortjis (IHU), and V. Verykios (HOU) accepted at [PVLDB 2023](https://vldb.org/2023/) (Vancouver, Canada).
+co-authored by D. Karapiperis (IHU), C. Tjortjis (IHU), and V. Verykios (HOU) accepted at [PVLDB 2023](https://vldb.org/2023/) (Vancouver, Canada)
+[https://dl.acm.org/doi/10.14778/3611479.3611487](Proceedings of the VLDB EndowmentVolume 16, Issue 11, pp 2783–2791)
 
 
 ## Abstract
